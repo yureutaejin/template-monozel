@@ -1,0 +1,71 @@
+# Manifest for the Bzlmod (Bazel Module System).
+
+# --------------------------------------------------------------------------------------------------
+# MARK: BCR Dependencies
+
+bazel_dep(name = "gazelle", version = "0.54.0")
+bazel_dep(name = "rules_go", version = "0.64.2")
+bazel_dep(name = "toolchains_llvm", version = "1.11.3")
+
+# --------------------------------------------------------------------------------------------------
+# MARK: Toolchains
+
+# rules_go needs C/C++ toolchains.
+# See https://github.com/bazel-contrib/rules_go/blob/v0.64.2/README.rst?plain=1#L173-L178
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    llvm_version = "23.1.3",
+)
+
+# Local development sysroots. Replace these file:// URLs with immutable remote
+# artifact URLs before sharing this module outside this devcontainer.
+sysroot = use_repo_rule("@toolchains_llvm//toolchain:sysroot.bzl", "sysroot")
+
+sysroot(
+    name = "local_sysroot_linux_amd64",
+    sha256 = "c90e2bc00b959848c705e3e7a1a914e69d00fc7c44482cc05b687fe94ae14319",
+    urls = ["file:///workspaces/template-monozel/tools/sysroot/out/sysroot-amd64.tar.gz"],
+)
+
+sysroot(
+    name = "local_sysroot_linux_arm64",
+    sha256 = "835885c467beb062e4b65ba1814e04d3290e812592f1051107961b4959b28c39",
+    urls = ["file:///workspaces/template-monozel/tools/sysroot/out/sysroot-arm64.tar.gz"],
+)
+
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@local_sysroot_linux_amd64//sysroot",
+    targets = ["linux-x86_64"],
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@local_sysroot_linux_arm64//sysroot",
+    targets = ["linux-aarch64"],
+)
+use_repo(llvm, "llvm_toolchain")
+
+register_toolchains("@llvm_toolchain//:all")
+
+# --------------------------------------------------------------------------------------------------
+# MARK: HTTP / Git repositories
+
+# --------------------------------------------------------------------------------------------------
+# MARK: Go
+
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(
+    name = "go_sdk",
+    version = "1.27.2",
+)
+use_repo(go_sdk, "go_sdk")
+
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_work = "//:go.work")
+
+# Run 'bazel mod tidy' to populate the list below
+use_repo(
+    go_deps,
+    "org_golang_x_net",
+    "org_golang_x_tools",
+)

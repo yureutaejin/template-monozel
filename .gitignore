@@ -1,0 +1,10 @@
+# AI
+.claude
+.codex
+plan
+
+# Locally generated sysroot archives
+tools/sysroot/out/
+
+# Bazel
+.bazel

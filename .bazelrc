@@ -1,0 +1,18 @@
+# --------------------------------------------------------------------------------------------------
+# MARK: General
+
+# Put symlinks in `.bazel/*`, not `bazel-*`.
+common --symlink_prefix=.bazel/
+
+# Cache action outputs on disk for faster iteration.
+build --disk_cache=/cache/bazel-disk-cache
+build --experimental_disk_cache_gc_max_age=30d
+build --experimental_disk_cache_gc_max_size=50G
+
+# Cache external repositories as well.
+build --repository_cache=/cache/bazel-repository-cache
+build --experimental_repository_cache_hardlinks
+
+# Allow programs to use the system cache.
+build --action_env=XDG_CACHE_HOME --host_action_env=XDG_CACHE_HOME
+build --sandbox_writable_path=/cache

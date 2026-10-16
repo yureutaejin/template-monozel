@@ -1,0 +1,64 @@
+{
+  "name": "template-monozel",
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "containerEnv": {
+    "CONTAINER_WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+    "XDG_CACHE_HOME": "/cache"
+  },
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.cache",
+      "target": "/cache",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolder}/.claude",
+      "target": "/home/vscode/.claude",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolder}/.codex",
+      "target": "/home/vscode/.codex",
+      "type": "bind"
+    }
+  ],
+  "runArgs": [
+    "--privileged",
+    "--name",
+    "template-monozel",
+    "--net=host",
+    "--add-host=host.docker.internal:host-gateway"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Anthropic.claude-code",
+        "BazelBuild.vscode-bazel",
+        "bierner.markdown-mermaid",
+        "eamodio.gitlens",
+        "GitHub.vscode-pull-request-github",
+        "golang.go",
+        "mhutchie.git-graph",
+        "openai.chatgpt",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+  "initializeCommand": "mkdir -p ${localWorkspaceFolder}/.codex ${localWorkspaceFolder}/.claude"
+}

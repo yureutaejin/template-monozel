@@ -1,0 +1,24 @@
+# ubuntu:noble-20260917 multi-architecture image digest
+FROM docker.io/library/ubuntu@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Use the base image's Ubuntu sources for the bootstrap sysroot. The emitted
+# package manifest and final archive checksum record the actual result.
+RUN set -eu; \
+    echo 'path-exclude=/usr/share/doc/*' > /etc/dpkg/dpkg.cfg.d/01_nodoc; \
+    echo 'path-exclude=/usr/share/man/*' >> /etc/dpkg/dpkg.cfg.d/01_nodoc; \
+    rm -rf /usr/share/doc /usr/share/man; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libc6-dev
+
+# Record the package closure that APT actually installed.
+RUN install -d -m 0755 /usr/share/sysroot-manifest
+
+# --show lists installed packages. --showformat emits one package=version
+# entry per line; binary:Package retains an architecture suffix when needed.
+RUN dpkg-query --show --showformat='${binary:Package}=${Version}\n' \
+    | LC_ALL=C sort \
+    > /usr/share/sysroot-manifest/installed-packages.txt
+
+RUN rm -rf /var/lib/apt/lists/*
